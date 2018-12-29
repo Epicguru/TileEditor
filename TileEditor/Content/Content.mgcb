@@ -13,12 +13,12 @@
 
 #---------------------------------- Content ---------------------------------#
 
-#begin Fonts/File.spritefont
+#begin Fonts/Small.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
 /processorParam:PremultiplyAlpha=True
 /processorParam:TextureFormat=Compressed
-/build:Fonts/File.spritefont;Fonts/Small.spritefont
+/build:Fonts/Small.spritefont
 
 #begin Pixel.png
 /importer:TextureImporter
