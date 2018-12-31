@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms;
@@ -10,20 +11,23 @@ namespace TileEditor
 {
     public class Main : Game
     {
-        public const string VERSION = "0.0.1";
+        public const string VERSION = "0.0.2";
         public static GraphicsDeviceManager Graphics;
         public static SpriteBatch SpriteBatch;
         public static Camera Camera;
         public static EventDispatcher Dispatcher;
         public static MouseState CurrentMouseState;
+        public static MouseState PrevousMouseState;
+        public static Texture2D ToolsTexture;
         public static Texture2D Pixel;
         public static Texture2D CurrentTexture;
         public static SpriteFont SmallFont;
+        public static UIWindow ToolWindow;
+        public static List<UIElement> UI = new List<UIElement>();
 
         private RenderTarget2D FrameBuffer;
         private static string CurrentFileName;
         private static string CurrentFilePath;
-        private static MouseState PrevousMouseState;
 
         public Main()
         {
@@ -41,6 +45,13 @@ namespace TileEditor
             Window.AllowUserResizing = true;
             Window.AllowAltF4 = false;
 
+            ToolWindow = new UIWindow();
+            ToolWindow.Title = "Tools";
+            int w = 32 + ToolWindow.Padding * 2;
+            int h = 100;
+            ToolWindow.Bounds = new Rectangle(20, Graphics.PreferredBackBufferHeight / 2 - h / 2, w, h);
+            UI.Add(ToolWindow);
+
             Camera = new Camera();
             Dispatcher = new EventDispatcher();
             ResizeBuffer(Graphics.PreferredBackBufferWidth, Graphics.PreferredBackBufferHeight);
@@ -53,6 +64,7 @@ namespace TileEditor
 
             SmallFont = Content.Load<SpriteFont>("Fonts/Small");
             Pixel = Content.Load<Texture2D>("Pixel");
+            ToolsTexture = Content.Load<Texture2D>("Buttons/Tools");
         }
 
         protected override void UnloadContent()
@@ -87,6 +99,14 @@ namespace TileEditor
         {
             base.Update(gameTime);
 
+            if(Window.ClientBounds.Width != Graphics.PreferredBackBufferWidth || Window.ClientBounds.Height != Graphics.PreferredBackBufferHeight)
+            {
+                Graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
+                Graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
+                Graphics.ApplyChanges();
+                Console.WriteLine("Detected change in window vs backbuffer size, resizing backbuffer to {0}x{1}", Window.ClientBounds.Width, Window.ClientBounds.Height);
+            }
+
             if(Graphics.PreferredBackBufferWidth != FrameBuffer.Width || Graphics.PreferredBackBufferHeight != FrameBuffer.Height)
             {
                 ResizeBuffer(Graphics.PreferredBackBufferWidth, Graphics.PreferredBackBufferHeight);
@@ -96,6 +116,8 @@ namespace TileEditor
             CurrentMouseState = Mouse.GetState();
 
             Dispatcher.DispatchEvents();
+
+            UpdateUIElements();
         }
 
         protected override void Draw(GameTime gameTime)
@@ -104,7 +126,7 @@ namespace TileEditor
             GraphicsDevice.Clear(Color.LightSlateGray);
 
             Camera.UpdateMatrix(GraphicsDevice);
-            SpriteBatch.Begin(SpriteSortMode.Deferred, null, null, null, null, null, Camera.GetMatrix());
+            SpriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, null, null, Camera.GetMatrix());
             DrawScene();
             SpriteBatch.End();
             GraphicsDevice.SetRenderTarget(null);
@@ -119,7 +141,7 @@ namespace TileEditor
         }
 
         private void DrawUI()
-        {     
+        {
             // Save and load buttons.
             bool openPressed = DrawButton(SmallFont, new Vector2(0, 0), "Open...");
             if (openPressed && !FileDialogeOpener.AnyOpen)
@@ -142,6 +164,12 @@ namespace TileEditor
             const int SIZE = 75;
             const int PADDING = 5;
             DrawRect(new Rectangle(Graphics.PreferredBackBufferWidth - SIZE - PADDING, PADDING + 18, SIZE, SIZE), Color.SaddleBrown, Color.White, 3);
+
+            DrawUIElements();
+
+            // Tool window.
+            ToolWindow.DrawButton(ToolsTexture, new Rectangle(0, 0, 32, 32), false);
+            ToolWindow.DrawButton(ToolsTexture, new Rectangle(32, 0, 32, 32), false);
         }
 
         private void DrawScene()
@@ -259,6 +287,24 @@ namespace TileEditor
             LoadAndSetCurrent(CurrentFilePath);
         }
 
+        private void UpdateUIElements()
+        {
+            foreach (var item in UI)
+            {
+                if(item != null)
+                    item.Update();
+            }
+        }
+
+        private void DrawUIElements()
+        {
+            foreach (var item in UI)
+            {
+                if (item != null)
+                    item.Draw();
+            }
+        }
+
         public static void DrawRect(Rectangle bounds, Color interior, Color exterior, int thickness)
         {
             if(thickness >= 1)
@@ -297,12 +343,25 @@ namespace TileEditor
             bool mouseDown = CurrentMouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed;
             bool oldMouseDown = PrevousMouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed;
 
-            bool isDown = over && (allowHolding ? (mouseDown) : (mouseDown && !oldMouseDown));
+            bool isDown = over && (allowHolding ? (mouseDown) : (mouseDown && !oldMouseDown)) && FocusTracker.CurrentlyTracked == null;
 
             DrawRect(bounds, isDown ? pressed : neutral, EDGE_COLOR, EDGE_WIDTH);
 
             var size = font.MeasureString(text);
             SpriteBatch.DrawString(font, text, bounds.Center.ToVector2() - size * 0.5f, Color.Black);
+
+            return isDown;
+        }
+
+        public static bool DrawButton(Texture2D texture, Rectangle textureBounds, Rectangle bounds, Color pressed, bool allowHolding)
+        {
+            bool over = bounds.Contains(CurrentMouseState.Position);
+            bool mouseDown = CurrentMouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed;
+            bool oldMouseDown = PrevousMouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed;
+
+            bool isDown = over && (allowHolding ? (mouseDown) : (mouseDown && !oldMouseDown)) && FocusTracker.CurrentlyTracked == null;
+
+            SpriteBatch.Draw(texture, bounds, textureBounds, isDown ? pressed : Color.White);
 
             return isDown;
         }
