@@ -6,7 +6,10 @@ namespace TileEditor
 {
     public class Camera
     {
-        public Vector2 Position { get; set; }
+        public const float MAX_ZOOM = 40f;
+        public const float MIN_ZOOM = 1f;
+
+        public Vector2 Position;
         public float Rotation { get; set; }
         public float Zoom
         {
@@ -16,7 +19,7 @@ namespace TileEditor
             }
             set
             {
-                this._zoom = Math.Max(Math.Min(value, 10), 0.005f);
+                this._zoom = Math.Max(Math.Min(value, MAX_ZOOM), MIN_ZOOM);
             }
         }
         public Rectangle WorldViewBounds { get; private set; }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,17 +48,15 @@ namespace TileEditor
             int height = (int)size.Y;            
 
             Rectangle dragPart = new Rectangle(Bounds.X, Bounds.Y, Bounds.Width, Padding * 2 + height);
-            bool mouseDown = Main.CurrentMouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed;
-            bool mouseJustDown = mouseDown && Main.PrevousMouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Released;
-            bool mouseOver = dragPart.Contains(Main.CurrentMouseState.Position);
+            bool mouseOver = dragPart.Contains(Input.CurrentMouseState.Position);
 
-            if (!Dragging && mouseOver && mouseJustDown)
+            if (!Dragging && mouseOver && Input.LeftMouseDown())
             {
                 // Clicked inside the window for the first time to drag...
                 FocusTracker.CurrentlyTracked = this;
                 Dragging = true;
-                dragOffset = new Point(Bounds.X - Main.CurrentMouseState.Position.X, Bounds.Y - Main.CurrentMouseState.Position.Y);
-            }
+                dragOffset = new Point(Bounds.X - (int)Input.MouseScreenPosition.X, Bounds.Y - (int)Input.MouseScreenPosition.Y);
+            }            
         }
 
         public void Draw()
@@ -68,14 +67,13 @@ namespace TileEditor
 
             currentY = height + Padding * 2;            
 
-            bool mouseDown = Main.CurrentMouseState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed;
             if (Dragging)
             {                
                 if(FocusTracker.CurrentlyTracked != this)
                 {
                     Dragging = false;
                 }
-                else if(!mouseDown)
+                else if(!Input.LeftMousePressed())
                 {
                     Dragging = false;
                     FocusTracker.CurrentlyTracked = null;
@@ -84,8 +82,8 @@ namespace TileEditor
 
             if (Dragging)
             {
-                Bounds.X = Main.CurrentMouseState.Position.X + dragOffset.X;
-                Bounds.Y = Main.CurrentMouseState.Position.Y + dragOffset.Y;
+                Bounds.X = (int)Input.MouseScreenPosition.X + dragOffset.X;
+                Bounds.Y = (int)Input.MouseScreenPosition.Y + dragOffset.Y;
             }
 
             Main.DrawRect(new Rectangle(Bounds.X, Bounds.Y, Bounds.Width, Bounds.Height), Color.Wheat, Color.Black, 2);

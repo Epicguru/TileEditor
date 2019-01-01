@@ -25,7 +25,11 @@ namespace TileEditor
         CORNER_TOP_LEFT,
         CORNER_TOP_RIGHT,
         CORNER_BOTTOM_LEFT,
-        CORNER_BOTTOM_RIGHT
+        CORNER_BOTTOM_RIGHT,
+        BOTTOM_LEFT_IC,
+        TOP_LEFT_IC,
+        TOP_RIGHT_IC,
+        BOTTOM_RIGHT_IC
     }
 
     public static class TilePartUtils
@@ -57,13 +61,13 @@ namespace TileEditor
                 case TilePart.BOTTOM_RIGHT:
                     return new Rectangle(EDGE + FULL, EDGE + FULL, EDGE, EDGE);
                 case TilePart.BOTTOM_LEFT_I:
-                    return new Rectangle(FULL + EDGE * 2, EDGE, EDGE, EDGE);
+                    return new Rectangle(FULL + EDGE * 3, 0, EDGE, EDGE);
                 case TilePart.TOP_LEFT_I:
-                    return new Rectangle(EDGE * 2 + FULL, 0, EDGE, EDGE);
+                    return new Rectangle(FULL + EDGE * 3, EDGE, EDGE, EDGE);
                 case TilePart.TOP_RIGHT_I:
-                    return new Rectangle(EDGE * 3 + FULL, 0, EDGE, EDGE);
+                    return new Rectangle(FULL + EDGE * 2, EDGE, EDGE, EDGE);
                 case TilePart.BOTTOM_RIGHT_I:
-                    return new Rectangle(EDGE * 3 + FULL, EDGE, EDGE, EDGE);
+                    return new Rectangle(FULL + EDGE * 2, 0, EDGE, EDGE);
                 case TilePart.CORNER_TOP_LEFT:
                     return new Rectangle(EDGE * 2 + FULL, EDGE * 2, FULL, FULL);
                 case TilePart.CORNER_TOP_RIGHT:
@@ -72,6 +76,14 @@ namespace TileEditor
                     return new Rectangle(EDGE * 2 + FULL * 3, EDGE * 2, FULL, FULL);
                 case TilePart.CORNER_BOTTOM_RIGHT:
                     return new Rectangle(EDGE * 2 + FULL * 4, EDGE * 2, FULL, FULL);
+                case TilePart.BOTTOM_LEFT_IC:
+                    return new Rectangle(EDGE * 4 + FULL, EDGE, EDGE, EDGE);
+                case TilePart.TOP_LEFT_IC:
+                    return new Rectangle(EDGE * 4 + FULL, 0, EDGE, EDGE);
+                case TilePart.TOP_RIGHT_IC:
+                    return new Rectangle(EDGE * 5 + FULL, 0, EDGE, EDGE);
+                case TilePart.BOTTOM_RIGHT_IC:
+                    return new Rectangle(EDGE * 5 + FULL, EDGE, EDGE, EDGE);
                 default:
                     return new Rectangle();
             }
